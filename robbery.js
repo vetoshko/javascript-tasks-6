@@ -16,9 +16,9 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
 // Возвращает статус ограбления (этот метод уже готов!)
 module.exports.getStatus = function (moment, robberyMoment) {
     if (moment.date < robberyMoment.date) {
-        console.log(robberyMoment.fromMoment(moment));
         // «До ограбления остался 1 день 6 часов 59 минут»
-    } else {
-        console.log('Ограбление уже идёт!');
+        return robberyMoment.fromMoment(moment);
     }
+
+    return 'Ограбление уже идёт!';
 };
