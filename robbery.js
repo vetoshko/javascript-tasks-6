@@ -38,12 +38,13 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
             break;
         }
     }
-    if (found != 0) {
-        console.log(found.getUTCDay());
-        console.log(found.getUTCHours() + ':' + found.getUTCMinutes());
-    } else {
-        console.log('Rob will never be!');
-    }
+    // if (found != 0) {
+    //     console.log(found);
+    // } else {
+    //     console.log('Rob will never be!');
+    // }
+    appropriateMoment.date = found;
+    appropriateMoment.timezone = -found.getTimezoneOffset() / 60;
     return appropriateMoment;
 };
 
