@@ -24,10 +24,24 @@ module.exports = function () {
             pattern = pattern.replace('%MM', minutes);
             return pattern;
         },
-
         // Возвращает кол-во времени между текущей датой и переданной `moment`
         // в человекопонятном виде
         fromMoment: function (moment) {
-        }
+
     };
 };
+
+function parseData(data) {
+    // 'ПН 12:59+5'
+    var wordToNumber = {
+        'ПН': 0,
+        'ВТ': 1,
+        'СР': 2
+    };
+    var newDate = {};
+    newDate.day = wordToNumber(data.substr(0, 2));
+    newDate.hour = data.substr(3, 2);
+    newDate.minutes = data.substr(6, 2);
+    newDate.zone = data.substr(8, 2);
+    return newDate;
+}

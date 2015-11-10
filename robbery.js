@@ -44,7 +44,7 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
     //     console.log('Rob will never be!');
     // }
     appropriateMoment.date = found;
-    appropriateMoment.timezone = -found.getTimezoneOffset() / 60;
+    appropriateMoment.timezone = openHour.timezone;
     return appropriateMoment;
 };
 
