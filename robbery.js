@@ -9,64 +9,146 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
     var newRobbery = getNewRobbery(data);
     var openHour = parseTime(workingHours["from"]);
     var closeHour = parseTime(workingHours["to"]);
-    var hoursDuration = Math.floor(minDuration / 60);
-    var minutesDuration = minDuration % 60;
-    var msInDay = 24*3600*1000;
-    var tempDate = new Date().getTime()
-    for (var days = 0; days < 8; days++) {
-        var currentDate = new Date(tempDate + days * msInDay);
-        if (currentDate.getDay() > 0 && currentDate.getDay() < 4) {
-            console.log(newRobbery[currentDate.getDay()]);
+    var robTime = 5400000;
 
+    var found = 0;
+    for (var i = 1; i < 4; i++)
+    {
+        openHour.date = i - 1;
+        var todayOpen = getNormalizedTime(openHour);
+        closeHour.date = i - 1;
+        var todayClose = getNormalizedTime(closeHour);
+
+        if (typeof newRobbery[i] == 'undefined')
+        {
+            found = todayOpen;
+            break;
         }
+
+        if ((newRobbery[i][0]["from"] - todayOpen) >= robTime)
+        {
+            found = newRobbery[i][0]["from"];
+            break;
+        }
+
+        if ((todayClose - newRobbery[i][newRobbery[i].length - 1]["to"]) >= robTime)
+        {
+            found = newRobbery[i][newRobbery[i].length - 1]["to"];
+            break;
+        }
+
+        for (var j = 1; j < newRobbery[i].length; j++)
+        {
+            if ((newRobbery[i][j]["from"] - newRobbery[i][j - 1]["to"]) >= robTime)
+            {
+                found = newRobbery[i][j - 1]["to"];
+                break;
+            }
+        }
+
+        if (found != 0)
+            break;
     }
+
+    if (found != 0) {
+        console.log(found.getUTCDay());
+        console.log(found.getUTCHours() + ":" + found.getUTCMinutes());
+    }
+    else
+        console.log("Rob will never be!");
+
     return appropriateMoment;
 };
 
 
+function sortPeriodes(a, b) {
+    if (a["from"] < b["from"])
+        return -1;
+
+    if (a["from"] > b["from"])
+        return 1;
+
+    return 0;
+}
+
+
 function getNewRobbery(data) {
-    var newRobbery = {}
+    var tempRobbery = {}
+
     for (var name in data) {
         for (var day = 0; day < data[name].length; day++) {
-            var fixed_day = day + 1;
-            if (typeof newRobbery[fixed_day] == 'undefined')
-                newRobbery[fixed_day] = [];
-            if (typeof newRobbery[fixed_day][name] == 'undefined')
-                newRobbery[fixed_day][name] = [];
-            var time = {};
-            for (var prop in data[name][day]) {
-                var correctTime = getCorrectTime(data[name][day][prop]);
-                time[prop] = correctTime;
+            var parsed_time = getCorrectTime(data[name][day])
+            for (var time_num = 0; time_num < parsed_time.length; time_num++) {
+                var current_day = parsed_time[time_num]["from"].getDay();
+                if (typeof tempRobbery[current_day] == 'undefined')
+                    tempRobbery[current_day] = [];
+                tempRobbery[current_day].push(parsed_time[time_num]);
             }
-            newRobbery[fixed_day][name].push(time);
         }
     }
-    return newRobbery;
+
+    for (var day in tempRobbery)
+        tempRobbery[day] = tempRobbery[day].sort(sortPeriodes);
+
+    return tempRobbery;
 }
 
 
 function getCorrectTime(time) {
-    var newDate = parseTime(time);
-    return newDate;
+    var from_date = getNormalizedTime(parseTime(time["from"]));
+    var to_date = getNormalizedTime(parseTime(time["to"]));
+    var result = []
+    var msInDay = 24 * 3600 * 1000;
+    var local_zero = 19 * 3600 * 1000; //because UTC+5 is local time
+
+    var temp_result = {}
+    temp_result["from"] = from_date;
+    if (from_date.getDay() != to_date.getDay())
+    {
+        var temp = new Date(from_date.valueOf() + (local_zero - (from_date.valueOf() % msInDay)))
+        temp_result["to"] = temp;
+        result.push(temp_result);
+        var temp_result = {}
+        temp_result["from"] = temp;
+    }
+    temp_result["to"] = to_date;
+    result.push(temp_result);
+
+    return result;
+}
+
+function getNormalizedTime(timeObj) {
+    var baseDate = Date.UTC(2015, 10, 9);
+    var msInDay = 24 * 3600 * 1000;
+    var newDate = baseDate + (msInDay * timeObj.date);
+    //add hours
+    newDate += timeObj.hours * 3600 * 1000;
+    //add minutes
+    newDate += timeObj.minutes * 60 * 1000;
+    //normalize to UTC
+    newDate -= timeObj.timezone * 3600 * 1000;
+
+    return new Date(newDate);
 }
 
 function parseTime(timeStr) {
 
     var wordToNumber = {
-        'ПН' : 1,
-        'ВТ' : 2,
-        'СР' : 3
+        'ПН' : 0,
+        'ВТ' : 1,
+        'СР' : 2
     }
     var newDate = {}
     if (timeStr.length == 10) {
         newDate.date = wordToNumber[timeStr.substr(0, 2)];
-        newDate.hours = timeStr.substr(3, 2);
-        newDate.minutes = timeStr.substr(6, 2);
-        newDate.timezone = timeStr.substr(8, 2);
+        newDate.hours = parseInt(timeStr.substr(3, 2));
+        newDate.minutes = parseInt(timeStr.substr(6, 2));
+        newDate.timezone = parseInt(timeStr.substr(8, 2));
     } else {
-        newDate.hours = timeStr.substr(0, 2);
-        newDate.minutes = timeStr.substr(3, 2);
-        newDate.timezone = timeStr.substr(6, 2);
+        newDate.date = -1;
+        newDate.hours = parseInt(timeStr.substr(0, 2));
+        newDate.minutes = parseInt(timeStr.substr(3, 2));
+        newDate.timezone = parseInt(timeStr.substr(6, 2));
     }
     return newDate;
 }
