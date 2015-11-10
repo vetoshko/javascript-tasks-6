@@ -27,7 +27,31 @@ module.exports = function () {
         // Возвращает кол-во времени между текущей датой и переданной `moment`
         // в человекопонятном виде
         fromMoment: function (moment) {
-
+            var currentDay = new Date();
+            var rubDay = parseData(moment.date);
+            var min = rubDay.minutes - currentDay.getMinutes();
+            if (min < 0) {
+                rubDay.hours -= 1;
+            }
+            var hours = rubDay.hours - currentDay.getHours();
+            if (hours < 0) {
+                rubDay.hours -= 1;
+            }
+            var day = rubDay.day - currentDay.getDay();
+            console.log(day);
+            console.log(hours);
+            console.log(minutes);
+            if (day < 0) {
+                return 'Ограбление уже идет!';
+            } else {
+                if (day == 0) {
+                    return 'До ограбления остался(-ось) ' + hours + ' час ' + min + ' минута';
+                } else {
+                    return 'До ограбления остался(-ось) ' + day +
+                        'дней' + hours + ' час ' + min + ' минута';
+                }
+            }
+        }
     };
 };
 
