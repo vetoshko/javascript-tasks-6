@@ -14,35 +14,38 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
     for (var i = 1; i < 4; i++) {
         openHour.date = i - 1;
         var todayOpen = getNormalizedTime(openHour);
-        closeHour.date = i - 1;
+        if (closeHour.hours == 0) {
+            closeHour.date = i;
+        }
+        else {
+            closeHour.date = i - 1;
+        }
         var todayClose = getNormalizedTime(closeHour);
-        if (typeof newRobbery[i] == 'undefined') {
-            found = todayOpen;
+        if ((todayClose - todayOpen) < robTime) {
             break;
         }
-        if ((newRobbery[i][0]['from'] - todayOpen) >= robTime) {
-            found = newRobbery[i][0]['from'];
+        if ((typeof newRobbery[i] == 'undefined') || ((newRobbery[i][0]['from'] - todayOpen) >= robTime)) {
+            found = todayOpen;
             break;
         }
         for (var j = 1; j < newRobbery[i].length; j++) {
             if ((newRobbery[i][j]['from'] - newRobbery[i][j - 1]['to']) >= robTime) {
-                found = newRobbery[i][j - 1]['to'];
-                break;
+                if ((newRobbery[i][j - 1]['to'] >= openHour) && (newRobbery[i][j]['from'] <= closeHour)) {
+                    found = newRobbery[i][j - 1]['to'];
+                    break;
+                }
             }
         }
         if ((todayClose - newRobbery[i][newRobbery[i].length - 1]['to']) >= robTime) {
-            found = newRobbery[i][newRobbery[i].length - 1]['to'];
-            break;
+            if (newRobbery[i][newRobbery[i].length - 1]['to'] > todayOpen) {
+                found = newRobbery[i][newRobbery[i].length - 1]['to'];
+                break;
+            }
         }
         if (found != 0) {
             break;
         }
     }
-    // if (found != 0) {
-    //     console.log(found);
-    // } else {
-    //     console.log('Rob will never be!');
-    // }
     appropriateMoment.date = found;
     appropriateMoment.timezone = openHour.timezone;
     return appropriateMoment;

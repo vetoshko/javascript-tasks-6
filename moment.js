@@ -10,6 +10,9 @@ module.exports = function () {
 
         // Выводит дату в переданном формате
         format: function (pattern) {
+            if (this.date == 0) {
+                return 'Ограбление не может состояться'
+            }
             var numberToWord = {
                 1: 'ПН',
                 2: 'ВТ',
@@ -27,6 +30,10 @@ module.exports = function () {
         // Возвращает кол-во времени между текущей датой и переданной `moment`
         // в человекопонятном виде
         fromMoment: function (moment) {
+            console.log(moment);
+            if (moment.date === 0) {
+                return "ehehe"
+            }
             var currentDay = new Date();
             var rubDay = parseData(moment.date);
             var min = rubDay.minutes - currentDay.getMinutes();

@@ -14,12 +14,12 @@ var robberyMoment = robbery.getAppropriateMoment(
     gang,
 
     // 90 минут
-    90,
+    60,
 
     // Рабочие часы банка
     {
-        from: '09:00+5',
-        to: '21:00+5'
+        from: '23:00+5',
+        to: '00:00+5'
     }
 );
 
