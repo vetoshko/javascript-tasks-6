@@ -16,21 +16,22 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
         var todayOpen = getNormalizedTime(openHour);
         if (closeHour.hours == 0) {
             closeHour.date = i;
-        }
-        else {
+        } else {
             closeHour.date = i - 1;
         }
         var todayClose = getNormalizedTime(closeHour);
         if ((todayClose - todayOpen) < robTime) {
             break;
         }
-        if ((typeof newRobbery[i] == 'undefined') || ((newRobbery[i][0]['from'] - todayOpen) >= robTime)) {
+        if ((typeof newRobbery[i] == 'undefined') ||
+        ((newRobbery[i][0]['from'] - todayOpen) >= robTime)) {
             found = todayOpen;
             break;
         }
         for (var j = 1; j < newRobbery[i].length; j++) {
             if ((newRobbery[i][j]['from'] - newRobbery[i][j - 1]['to']) >= robTime) {
-                if ((newRobbery[i][j - 1]['to'] >= openHour) && (newRobbery[i][j]['from'] <= closeHour)) {
+                if ((newRobbery[i][j - 1]['to'] >= todayOpen) &&
+                (newRobbery[i][j]['from'] <= todayClose)) {
                     found = newRobbery[i][j - 1]['to'];
                     break;
                 }

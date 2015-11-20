@@ -11,7 +11,7 @@ module.exports = function () {
         // Выводит дату в переданном формате
         format: function (pattern) {
             if (this.date == 0) {
-                return 'Ограбление не может состояться'
+                return 'Ограбление не может состояться';
             }
             var numberToWord = {
                 1: 'ПН',
@@ -32,7 +32,7 @@ module.exports = function () {
         fromMoment: function (moment) {
             console.log(moment);
             if (moment.date === 0) {
-                return "ehehe"
+                return 'Ограбление не состоится НИКОГДА.';
             }
             var currentDay = new Date();
             var rubDay = parseData(moment.date);
