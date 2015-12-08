@@ -22,7 +22,7 @@ var robberyMoment = robbery.getAppropriateMoment(
         to: '21:00+5'
     }
 );
-
+robberyMoment.timezone = 5; // Переводим время в часовой пояс Котеринбурга
 console.log(
     robberyMoment.format('Ограбление должно состоятся в %DD. Всем быть готовыми к %HH:%MM!')
 );
@@ -31,4 +31,3 @@ robberyMoment.timezone = -5; // Переводим время в часовой 
 console.log(
     robberyMoment.format('Дарья, прилетай в Котеринбург в %DD. Собираемся в %HH:%MM!')
 );
-robberyMoment.timezone = 5; // Переводим время в часовой пояс Котеринбурга
