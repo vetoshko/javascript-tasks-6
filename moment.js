@@ -14,17 +14,35 @@ module.exports = function () {
                 return 'Ограбление не может состояться';
             }
             var numberToWord = {
+                0: 'ВС',
                 1: 'ПН',
                 2: 'ВТ',
-                3: 'СР'
+                3: 'СР',
+                4: 'ЧТ'
             };
+
+            var day = this.date.getDay();
+
+            var hours = this.date.getUTCHours() + this.timezone;
+            if (hours < 0) {
+                hours += 24;
+                day -= 1;
+            }
+            if (hours < 10) {
+                hours = '0' + hours;
+            }
+
+            day = numberToWord[day];
+
             var minutes = this.date.getMinutes();
             if (minutes < 10) {
                 minutes = '0' + minutes;
             }
-            pattern = pattern.replace('%DD', numberToWord[this.date.getDay()]);
-            pattern = pattern.replace('%HH', this.date.getUTCHours() + this.timezone);
+
+            pattern = pattern.replace('%DD', day);
+            pattern = pattern.replace('%HH', hours);
             pattern = pattern.replace('%MM', minutes);
+
             return pattern;
         },
         // Возвращает кол-во времени между текущей датой и переданной `moment`

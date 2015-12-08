@@ -1,6 +1,10 @@
 'use strict';
 
 var moment = require('./moment');
+var msInSeconds = 1000;
+var secondsInMinute = 60;
+var minutesInHour = 60;
+var hoursInDay = 24;
 
 // Выбирает подходящий ближайший момент начала ограбления
 module.exports.getAppropriateMoment = function (json, minDuration, workingHours) {
@@ -9,7 +13,7 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
     var newRobbery = getNewRobbery(data);
     var openHour = parseTime(workingHours['from']);
     var closeHour = parseTime(workingHours['to']);
-    var robTime = minDuration * 60 * 1000;
+    var robTime = minDuration * secondsInMinute * msInSeconds;
     var found = 0;
     for (var i = 1; i < 4; i++) {
         openHour.date = i - 1;
@@ -19,10 +23,12 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
         } else {
             closeHour.date = i - 1;
         }
+
         var todayClose = getNormalizedTime(closeHour);
         if ((todayClose - todayOpen) < robTime) {
             break;
         }
+
         if ((typeof newRobbery[i] == 'undefined') ||
         ((newRobbery[i][0]['from'] - todayOpen) >= robTime)) {
             found = todayOpen;
@@ -38,17 +44,21 @@ module.exports.getAppropriateMoment = function (json, minDuration, workingHours)
             }
         }
         if ((todayClose - newRobbery[i][newRobbery[i].length - 1]['to']) >= robTime) {
-            if (newRobbery[i][newRobbery[i].length - 1]['to'] > todayOpen) {
+            if (newRobbery[i][newRobbery[i].length - 1]['to'] >= todayOpen) {
                 found = newRobbery[i][newRobbery[i].length - 1]['to'];
-                break;
-            }
+            } else {
+                found = todayOpen;
+            };
+
+            break;
         }
         if (found != 0) {
             break;
         }
     }
+
     appropriateMoment.date = found;
-    appropriateMoment.timezone = openHour.timezone;
+    appropriateMoment.timezone = found.getTimezoneOffset() / -60;
     return appropriateMoment;
 };
 
@@ -89,8 +99,9 @@ function getCorrectTime(time) {
     var from_date = getNormalizedTime(parseTime(time['from']));
     var to_date = getNormalizedTime(parseTime(time['to']));
     var result = [];
-    var msInDay = 24 * 3600 * 1000;
-    var local_zero = 19 * 3600 * 1000; //because UTC+5 is local time
+    var msInDay = hoursInDay * minutesInHour * secondsInMinute * msInSeconds;
+    var localTimezone = new Date().getTimezoneOffset() / -minutesInHour;
+    var local_zero = (hoursInDay - localTimezone) * minutesInHour * secondsInMinute * msInSeconds;
     var temp_result = {};
     temp_result['from'] = from_date;
     if (from_date.getDay() != to_date.getDay()) {
@@ -106,17 +117,17 @@ function getCorrectTime(time) {
 }
 
 function getNormalizedTime(timeObj) {
+
     var baseDate = Date.UTC(2015, 10, 9);
-    var msInDay = 24 * 3600 * 1000;
+    var msInDay = hoursInDay * minutesInHour * secondsInMinute * msInSeconds;
     var newDate = baseDate + (msInDay * timeObj.date);
-    newDate += timeObj.hours * 3600 * 1000;
-    newDate += timeObj.minutes * 60 * 1000;
-    newDate -= timeObj.timezone * 3600 * 1000;
+    newDate += timeObj.hours * minutesInHour * secondsInMinute * msInSeconds;
+    newDate += timeObj.minutes * secondsInMinute * msInSeconds;
+    newDate -= timeObj.timezone * minutesInHour * secondsInMinute * msInSeconds;
     return new Date(newDate);
 }
 
 function parseTime(timeStr) {
-
     var wordToNumber = {
         'ПН': 0,
         'ВТ': 1,
@@ -132,7 +143,7 @@ function parseTime(timeStr) {
         newDate.date = -1;
         newDate.hours = parseInt(timeStr.substr(0, 2));
         newDate.minutes = parseInt(timeStr.substr(3, 2));
-        newDate.timezone = parseInt(timeStr.substr(6, 2));
+        newDate.timezone = parseInt(timeStr.substr(5, 2));
     }
     return newDate;
 }
