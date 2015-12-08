@@ -10,11 +10,16 @@ var gang = require('fs').readFileSync('gang.json', 'utf-8');
 //  - Ограбление должно состоятся в рабочие часы, чтобы двери банка были открыты
 
 var robberyMoment = robbery.getAppropriateMoment(
+    // Расписание членов банды
     gang,
-    60,
+
+    // 90 минут
+    90,
+
+    // Рабочие часы банка
     {
-        from: '23:00+5',
-        to: '00:00+5'
+        from: '09:00+5',
+        to: '21:00+5'
     }
 );
 
